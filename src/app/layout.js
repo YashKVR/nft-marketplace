@@ -29,7 +29,9 @@ export default function RootLayout({ children }) {
       >
         <Providers>
           <Navbar />
-          {children}
+          <div className="pt-65">
+            {children}
+          </div>
           <Footer />
         </Providers>
       </body>
