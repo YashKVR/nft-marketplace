@@ -29,7 +29,7 @@ export default function RootLayout({ children }) {
       >
         <Providers>
           <Navbar />
-          <div className="pt-65">
+          <div className="pt-65" suppressHydrationWarning>
             {children}
           </div>
           <Footer />
