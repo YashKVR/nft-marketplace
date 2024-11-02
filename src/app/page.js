@@ -1,7 +1,22 @@
+"use client"
+import { useState, useEffect, useContext } from 'react'
 import Banner from "@/components/Banner";
 import NFTCard from "@/components/NFTCard";
 
+import { NFTContext } from '@/context/NFTContext';
+
 export default function Home() {
+  const { fetchNFTs } = useContext(NFTContext);
+  const [NFTs, setNFTs] = useState([])
+
+  useEffect(() => {
+    fetchNFTs().then((items) => {
+      setNFTs(items);
+      console.log(items);
+    });
+  }, []);
+
+
   return (
     <div className="flex flex-col justify-center sm:px-4 p-12">
       <div className="w-full minmd:w-4/5">
@@ -19,7 +34,11 @@ export default function Home() {
         </div>
 
         <div className="mt-3 flex flex-wrap justify-start md:justify-center">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+          {NFTs.map((nft) => <NFTCard
+            key={nft.toknId}
+            nft={nft}
+          />)}
+          {/* {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
             <NFTCard
               key={`nft-${i}`}
               nft={{
@@ -31,7 +50,7 @@ export default function Home() {
                 description: 'Cool NFT on sale'
               }}
             />
-          ))}
+          ))} */}
         </div>
       </div>
     </div>

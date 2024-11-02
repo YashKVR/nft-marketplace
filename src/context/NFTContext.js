@@ -8,10 +8,12 @@ import { MarketAddress, MarketAddressABI } from "./constants"
 
 export const NFTContext = React.createContext();
 
+const fetchContract = (signerOrProvider) => new ethers.Contract(MarketAddress, MarketAddressABI, signerOrProvider);
+
 export const NFTProvider = ({ children }) => {
     const nftCurrency = 'POL';
-
     const [currentAccount, setCurrentAccount] = useState("")
+    const [isLoadingNFT, setIsLoadingNFT] = useState(false);
 
     const checkIfWalletIsConnected = async () => {
         if (!window.ethereum) return alert('Please install Metamask')
@@ -39,8 +41,51 @@ export const NFTProvider = ({ children }) => {
         checkIfWalletIsConnected();
     }, [])
 
+    const fetchNFTs = async () => {
+        setIsLoadingNFT(false);
+
+        const provider = new ethers.JsonRpcProvider("https://polygon-amoy.drpc.org");
+        const contract = fetchContract(provider);
+
+        const data = await contract.fetchMarketItems();
+
+        const items = await Promise.all(data.map(async ({ tokenId, seller, owner, price: unformattedPrice }) => {
+            const tokenURI = await contract.tokenURI(tokenId);
+            const { data: { image, name, description } } = await axios.get(tokenURI);
+            const price = ethers.formatUnits(unformattedPrice.toString(), 'ether');
+            const formattedImageUrl = `https://ipfs.io/ipfs/${image.slice(7)}`
+
+            return { price, tokenId: Number(tokenId), id: Number(tokenId), seller, owner, image: formattedImageUrl, name, description, tokenURI };
+        }));
+
+        return items;
+    };
+
+    const fetchMyNFTsOrListedNFTs = async (type) => {
+        const web3Modal = new Web3Modal();
+        const connection = await web3Modal.connect();
+        const provider = new ethers.BrowserProvider(connection);
+        const signer = await provider.getSigner();
+
+        const contract = fetchContract(signer);
+
+        const data = type === 'fetchItemsListed' ? await contract.fetchItemsListed()
+            : await contract.fetchMyNFTs();
+
+        const items = await Promise.all(data.map(async ({ tokenId, seller, owner, price: unformattedPrice }) => {
+            const tokenURI = await contract.tokenURI(tokenId);
+            const { data: { image, name, description } } = await axios.get(tokenURI);
+            const price = ethers.formatUnits(unformattedPrice.toString(), 'ether');
+            const formattedImageUrl = `https://ipfs.io/ipfs/${image.slice(7)}`
+
+            return { price, tokenId: Number(tokenId), id: Number(tokenId), seller, owner, image: formattedImageUrl, name, description, tokenURI };
+        }));
+        return items;
+
+    }
+
     return (
-        <NFTContext.Provider value={{ nftCurrency, currentAccount, connectWallet }}>
+        <NFTContext.Provider value={{ nftCurrency, currentAccount, connectWallet, fetchNFTs, isLoadingNFT, fetchMyNFTsOrListedNFTs }}>
             {children}
         </NFTContext.Provider>
     )
