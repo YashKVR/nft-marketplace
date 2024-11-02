@@ -1,19 +1,25 @@
 "use client"
 import { useState, useEffect, useContext } from 'react'
 import Banner from "@/components/Banner";
-import NFTCard from "@/components/NFTCard";
 
 import { NFTContext } from '@/context/NFTContext';
+import CarCard from '@/components/CarCard';
 
 export default function Home() {
-  const { fetchNFTs } = useContext(NFTContext);
-  const [NFTs, setNFTs] = useState([])
+  const { fetchNFTs, fetchNFTsListedForMint } = useContext(NFTContext);
+  // const [NFTs, setNFTs] = useState([])
+  const [cars, setCars] = useState([]);
 
   useEffect(() => {
-    fetchNFTs().then((items) => {
-      setNFTs(items);
-      console.log(items);
-    });
+    // fetchNFTs().then((items) => {
+    //   setNFTs(items);
+    //   console.log(items);
+    // });
+
+    fetchNFTsListedForMint().then((items) => {
+      setCars(items);
+      console.log("cars: ", items);
+    })
   }, []);
 
 
@@ -34,10 +40,17 @@ export default function Home() {
         </div>
 
         <div className="mt-3 flex flex-wrap justify-start md:justify-center">
-          {NFTs.map((nft) => <NFTCard
-            key={nft.toknId}
+
+          {cars.map((nft) => <CarCard
+            key={nft.tokenId}
             nft={nft}
           />)}
+
+          {/* {NFTs.map((nft) => <NFTCard
+            key={nft.tokenId}
+            nft={nft}
+          />)} */}
+
           {/* {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
             <NFTCard
               key={`nft-${i}`}
